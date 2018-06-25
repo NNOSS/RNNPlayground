@@ -1,14 +1,24 @@
 import tensorflow as tf
 import RNNCell
 import getData
-INPUT_SIZE = 26
+INPUT_SIZE = 27
 HIDDEN_SIZE = 256
 BATCH_SIZE = 100
 FILENAME = 'malenames.txt'
 
+RESTORE = False
 
-def train(train, y):
-    bg = getData.get_batch_generator(FILENAME, 10, 10)
+
+def train(iterations, loss, train, y):
+    bg = getData.get_batch_generator(FILENAME, BATCH_SIZE, num_outputs)
+    for i in range(iterations):
+        batch = next(bg, None)
+        while batch is not None:
+            bg = getData.get_batch_generator(FILENAME, 10, 10)
+            batch = next(bg, None)
+        loss, _ = sess.run([loss, train], feed_dict = {y : batch})
+        if i % 100 == 0:
+            print(loss)
 
 
 def define_train(num_outputs):
@@ -24,9 +34,9 @@ def define_train(num_outputs):
         loss = loss + tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=x, logits = output))
     loss = loss / num_outputs
     train = tf.train.AdamOptimizer(LEARNING_RATE).minimize(loss)
-    return y, train
+    return loss, train, y
 
-def define_test(num_outputs, x = None):
+def define_output(num_outputs, x = None):
     GRNN = RNNCell.GRNNCell(INPUT_SIZE, HIDDEN_SIZE)
     hidden = tf.zeros(BATCH_SIZE, HIDDEN_SIZE)
     if x is None:
@@ -45,5 +55,14 @@ def define_test(num_outputs, x = None):
     return final_output
 
 if __name__ == "__main__":
+    num_outputs = 10
+    sess = tf.session()
+    saver = tf.train.Saver()
+    loss, train, y = define_train(num_outputs)
 
-    define_train(10)
+    if SAVE_PATH is not None and RESTORE:
+        saver.restore(sess, SAVE_PATH)
+    else:
+        saver.save(sess, SAVE_PATH)
+
+    train(10000, loss, train, y)
