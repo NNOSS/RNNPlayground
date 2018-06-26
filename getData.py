@@ -1,6 +1,7 @@
 import numpy as np
 import string
 import re
+import sys
 
 def getNamestxt(filename):
     '''build database from text file where it only takes first word from
@@ -38,6 +39,19 @@ def get_batch_generator(filename, batch_size, length):
             batch[np.arange(len(indices)), j] = indices
         yield batch
 
+def print_words(example):
+    print(example)
+    for word in example[0]:
+        for value in word:
+            value = np.squeeze(value)
+            if value != 0:
+                sys.stdout.write(string.ascii_lowercase[value-1])
+                sys.stdout.flush()
+        print('')
+
+
 if __name__ == "__main__":
-    bg = get_batch_generator('malenames.txt', 10, 10)
+    bg = get_batch_generator('malenames.txt', 10, 5)
     a = next(bg)
+    print(a[0])
+    print(a[:,0])
